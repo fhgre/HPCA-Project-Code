@@ -1,4 +1,6 @@
 import re
+from collections import defaultdict
+import pandas as pd
 
 text_to_parse = """
 Start
@@ -69,28 +71,41 @@ def has_mo_match(matched_object):
     else:
         return False
         
-def parse_start(line):
-    matched = re.compile(r'Start').search(line)
-    if has_mo_match(matched):
-        return matched.group()
-    else:
-        return ''
+# def parse_start(line):
+#     matched = re.compile(r'Start').search(line)
+#     if has_mo_match(matched):
+#         return matched.group()
+#     else:
+#         return None
         
 def parse_pid_time(line):
     matched = re.compile(r'\s(\d+).*?(\d{1,6}\.\d{1,6})').search(line)
     if has_mo_match(matched):
         return matched.group(1), matched.group(2)
     else:
-        return ''
+        return None
         
 def parse_end(line):
     matched = re.compile(r'End').search(line)
     if has_mo_match(matched):
         return matched.group()
     else:
-        return ''
+        return None
+
+measurements = defaultdict(dict)
+# keep track of the number of measurements in the log file
+measurement_counter = 1
 
 tokenized_text = text_to_parse.splitlines()
 for line in tokenized_text:
-    pass
-    # TODO Logica per pandas
+    if parse_pid_time(line) != None:
+        result = parse_pid_time(line)
+        pid = 'CPU ' + result[0]
+        time = result[1]
+        measurements[measurement_counter][pid] = time
+    elif parse_pid_time(line) is None and parse_end(line) is not None:
+        measurement_counter += 1
+
+df = pd.DataFrame(measurements).T
+df.index.name = 'Measurements'
+df.to_csv('test.csv', encoding='utf-8')
