@@ -2,7 +2,7 @@ import re
 from collections import defaultdict
 import pandas as pd
 
-text_to_parse = """
+first_texto_parse = """
 Start
 Process 8 finished in 7.1139s.
 
@@ -65,6 +65,23 @@ Process 7 finished in 10.5578s.
 End
 """
 
+second_texto_parse = """
+Start
+Process 3 finished in 6.5676s.
+
+Process 6 finished in 6.6859s.
+
+Process 5 finished in 10.0759s.
+
+Process 2 finished in 10.0980s.
+
+Process 4 finished in 10.3889s.
+
+Process 1 finished in 10.5298s.
+
+End
+"""
+
 def has_mo_match(matched_object):
     if matched_object is not None:
         return True
@@ -92,11 +109,19 @@ def parse_end(line):
     else:
         return None
 
+# TODO Logic to handle logs folder traversing
+
+# TODO For each log file generate a csv file:
+# Sequential/parallel PI logs naming convention:
+# mpi$num_nodes.$num_trials_scientific_notation.log
+# Sequential/parallel MatMul logs naming convention:
+# mpi$num_nodes.$mat_dim.log
+
 # Init an empty defaultdict
 measurements = defaultdict(dict)
 # keep track of the number of measurements in the log file
 measurement_counter = 1
-tokenized_text = text_to_parse.splitlines()
+tokenized_text = first_texto_parse.splitlines()
 for line in tokenized_text:
     if parse_pid_time(line) != None:
         # line contains process id and time, let's save them
@@ -114,4 +139,4 @@ df = pd.DataFrame(measurements).T
 # rename the df index to Measurements
 df.index.name = 'Measurements'
 # convert this df to a csv file
-df.to_csv('test.csv', encoding='utf-8')
+df.to_csv('test.csv', encoding='utf-8-sig')
