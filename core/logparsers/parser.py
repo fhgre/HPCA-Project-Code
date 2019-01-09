@@ -92,20 +92,26 @@ def parse_end(line):
     else:
         return None
 
+# Init an empty defaultdict
 measurements = defaultdict(dict)
 # keep track of the number of measurements in the log file
 measurement_counter = 1
-
 tokenized_text = text_to_parse.splitlines()
 for line in tokenized_text:
     if parse_pid_time(line) != None:
+        # line contains process id and time, let's save them
         result = parse_pid_time(line)
         pid = 'CPU ' + result[0]
         time = result[1]
+        # add the process id and its time to measurements dict
+        # at measurement_counter
         measurements[measurement_counter][pid] = time
     elif parse_pid_time(line) is None and parse_end(line) is not None:
+        # line contains End marker, increment the measurement_counter by 1
         measurement_counter += 1
-
+# convert the measurements dict to a dataframe
 df = pd.DataFrame(measurements).T
+# rename the df index to Measurements
 df.index.name = 'Measurements'
+# convert this df to a csv file
 df.to_csv('test.csv', encoding='utf-8')
