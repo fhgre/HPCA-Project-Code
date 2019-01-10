@@ -1,99 +1,13 @@
 import re
 from collections import defaultdict
 import pandas as pd
-
-first_texto_parse = """
-Start
-Process 8 finished in 7.1139s.
-
-Process 2 finished in 7.1888s.
-
-Process 5 finished in 7.1996s.
-
-Process 6 finished in 8.9562s.
-
-Process 3 finished in 8.9944s.
-
-Process 9 finished in 9.0358s.
-
-Process 7 finished in 10.3570s.
-
-Process 4 finished in 10.4160s.
-
-Process 1 finished in 10.4978s.
-
-End
-Start
-Process 9 finished in 7.0031s.
-
-Process 3 finished in 7.0874s.
-
-Process 6 finished in 7.0876s.
-
-Process 5 finished in 8.3848s.
-
-Process 8 finished in 8.4303s.
-
-Process 2 finished in 8.4481s.
-
-Process 4 finished in 10.5088s.
-
-Process 1 finished in 10.5558s.
-
-Process 7 finished in 10.5998s.
-
-End
-Start
-Process 3 finished in 6.5676s.
-
-Process 9 finished in 6.6205s.
-
-Process 6 finished in 6.6859s.
-
-Process 8 finished in 10.0332s.
-
-Process 5 finished in 10.0759s.
-
-Process 2 finished in 10.0980s.
-
-Process 4 finished in 10.3889s.
-
-Process 1 finished in 10.5298s.
-
-Process 7 finished in 10.5578s.
-
-End
-"""
-
-second_texto_parse = """
-Start
-Process 3 finished in 6.5676s.
-
-Process 6 finished in 6.6859s.
-
-Process 5 finished in 10.0759s.
-
-Process 2 finished in 10.0980s.
-
-Process 4 finished in 10.3889s.
-
-Process 1 finished in 10.5298s.
-
-End
-"""
+from sys import argv
 
 def has_mo_match(matched_object):
     if matched_object is not None:
         return True
     else:
         return False
-        
-# def parse_start(line):
-#     matched = re.compile(r'Start').search(line)
-#     if has_mo_match(matched):
-#         return matched.group()
-#     else:
-#         return None
         
 def parse_pid_time(line):
     matched = re.compile(r'\s(\d+).*?(\d{1,6}\.\d{1,6})').search(line)
@@ -109,34 +23,78 @@ def parse_end(line):
     else:
         return None
 
-# TODO Logic to handle logs folder traversing
+def sanitize_filename(name):
+    # TODO For each log file generate a csv file:
+    # Sequential/parallel PI logs naming convention:
+    # mpi$num_nodes.$num_trials_scientific_notation.log
+    # Sequential/parallel MatMul logs naming convention:
+    # mpi$num_nodes.$mat_dim.log
+    err_list = [False,'']
+    if 'mpi' not in name and 'log' not in name:
+        return err_list
 
-# TODO For each log file generate a csv file:
-# Sequential/parallel PI logs naming convention:
-# mpi$num_nodes.$num_trials_scientific_notation.log
-# Sequential/parallel MatMul logs naming convention:
-# mpi$num_nodes.$mat_dim.log
+    # Name looks promising, let's tokenize it
+    tokenized_name = name.split('.')
+    # try to pop log extension, don't need it
+    try:
+        tokenized_name.remove('log')
+    except ValueError:
+        print('DEBUG: tokenized_name doesn\'t contain log keyword')
+        return err_list
+    
+    # ['mpi', '6', '100']
+    csv_filename = '{0}.{1}.{2}.csv'.format(tokenized_name[0], tokenized_name[1], tokenized_name[2])
+    # return the csv filename to write later on
+    return [True, csv_filename]
 
-# Init an empty defaultdict
-measurements = defaultdict(dict)
-# keep track of the number of measurements in the log file
-measurement_counter = 1
-tokenized_text = first_texto_parse.splitlines()
-for line in tokenized_text:
-    if parse_pid_time(line) != None:
-        # line contains process id and time, let's save them
-        result = parse_pid_time(line)
-        pid = 'CPU ' + result[0]
-        time = result[1]
-        # add the process id and its time to measurements dict
-        # at measurement_counter
-        measurements[measurement_counter][pid] = time
-    elif parse_pid_time(line) is None and parse_end(line) is not None:
-        # line contains End marker, increment the measurement_counter by 1
-        measurement_counter += 1
-# convert the measurements dict to a dataframe
-df = pd.DataFrame(measurements).T
-# rename the df index to Measurements
-df.index.name = 'Measurements'
+def log_file_to_dataframe(log_content):
+    # Init an empty defaultdict
+    measurements = defaultdict(dict)
+    # keep track of the number of measurements in the log file
+    measurement_counter = 1
+    for line in log_content:
+        if parse_pid_time(line) != None:
+            # line contains process id and time, let's save them
+            result = parse_pid_time(line)
+            pid = 'CPU ' + result[0]
+            time = result[1]
+            # add the process id and its time to measurements dict
+            # at measurement_counter
+            measurements[measurement_counter][pid] = time
+        elif parse_pid_time(line) is None and parse_end(line) is not None:
+            # line contains End marker, increment the measurement_counter by 1
+            measurement_counter += 1
+    # convert the measurements dict to a dataframe
+    df = pd.DataFrame(measurements).T
+    # rename the df index to Measurements
+    df.index.name = 'Measurements'
+    return df
+
+filename = argv[1] if len(argv) > 1 else None
+print('Your filename is:',filename)
+csv_filename = ''
+if filename is None:
+    print('Usage: python parser.py [log_file_to_parse.log]')
+    exit()
+else:
+    check_name_list = sanitize_filename(filename)
+    if check_name_list[0] == False:
+        print('Are you sure you\'re using the correct log file? Try again.')
+        exit()
+    else:
+        print('Parsing \'{0}\'...'.format(filename))
+        csv_filename = check_name_list[1]
+        
+print('CSV filename will be:', csv_filename)
+log_content = ''
+with open(filename) as f:
+    log_content = f.readlines()
+
+# stip newline char
+log_content = [x.strip('\n') for x in log_content]
+# filter out empty strings
+log_content = list(filter(None, log_content))
+
+df = log_file_to_dataframe(log_content)
 # convert this df to a csv file
-df.to_csv('test.csv', encoding='utf-8-sig')
+df.to_csv(csv_filename, encoding='utf-8-sig')
