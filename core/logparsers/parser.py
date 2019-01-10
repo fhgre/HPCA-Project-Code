@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 import pandas as pd
 from sys import argv
+from os import environ
 
 def has_mo_match(matched_object):
     if matched_object is not None:
@@ -87,7 +88,11 @@ else:
         
 print('CSV filename will be:', csv_filename)
 log_content = ''
-with open(filename) as f:
+# Construct the correct path for the logs folder
+home_folder_env = environ['HOME']
+# home_folder_env + '/' + 'cloud/core/logparsers/logs' + '/' + filename
+logs_folder = home_folder_env + '/' + 'cloud/core/logparsers/logs' + '/'
+with open(logs_folder + filename) as f:
     log_content = f.readlines()
 
 # stip newline char
@@ -97,4 +102,6 @@ log_content = list(filter(None, log_content))
 
 df = log_file_to_dataframe(log_content)
 # convert this df to a csv file
-df.to_csv(csv_filename, encoding='utf-8-sig')
+# Construct the correct path for the csv folder
+csv_folder = home_folder_env + '/' + 'cloud/core/logparsers/csv' + '/'
+df.to_csv(csv_folder + csv_filename, encoding='utf-8-sig')
