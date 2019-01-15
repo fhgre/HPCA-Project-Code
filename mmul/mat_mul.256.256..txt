@@ -1,0 +1,32 @@
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 21.228904008865356, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 10.624794483184814, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 5.605940580368042, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 4.72447395324707, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 20.612473249435425, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 10.482341527938843, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 5.724751949310303, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 4.530459880828857, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 20.48732018470764, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 10.234507083892822, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 5.663511514663696, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 4.3019773960113525, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 20.9264874458313, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 11.058722972869873, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 5.668031454086304, 's')
+Generating serial product matrix
+('\nMPI part time elapsed:\n\n', 3.9672954082489014, 's')
